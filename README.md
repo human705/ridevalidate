@@ -46,13 +46,17 @@ conda create --name minimal_ds
 conda activate minimal_ds
 ```
 
+````List environments
+conda env list
+
+
 # Add conda-forge As a Channel:
 
 ```bash
 conda config --add channels conda-forge
 conda config --set channel_priority strict
 conda install <package-name>
-```
+````
 
 # Add basic DS Packages:
 
@@ -67,3 +71,7 @@ pip install -r requirements.txt
 
 conda deactivate
 ```
+
+# If you are working with VS Code you may need to add the path to the environment manually
+
+add the path "C:\Users\%USERNAME%\miniconda3\envs\envname\python.exe"
