@@ -32,7 +32,7 @@ conda install <package-name>
 conda update conda
 ```
 
-Setting Up Conda Environment
+Setting Up Conda Environment and change minimal-ds to anything you want
 
 # Create a `minimal_ds` Environment:
 
