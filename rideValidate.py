@@ -81,7 +81,7 @@ elif (fileExt == '.json'):
     importedSamples = copy.deepcopy(data['RIDE']['SAMPLES'])
     strDateTime = data['RIDE']['STARTTIME']
     rideStartTime = datetime.strptime(
-        strDateTime, '%Y\\/%m\\/%d %H:%M:%S')
+        strDateTime, '%Y\/%m\/%d %H:%M:%S')
     # Closing file
     f.close()
 

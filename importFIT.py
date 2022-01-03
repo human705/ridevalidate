@@ -121,7 +121,7 @@ def buildGCRideFile(_samplesList, _myfileName, _rideStartTime):
     fn = split_tup[0]
     fe = split_tup[1]
     # Convert date obj to string
-    d = _rideStartTime.strftime('%Y\\/%m\\/%d %H:%M:%S')
+    d = _rideStartTime.strftime('%Y/%m/%d %H:%M:%S')
     myMonth = _rideStartTime.strftime('%B')
     myYear = _rideStartTime.strftime('%Y')
     myWeekDay = _rideStartTime.strftime('%A')
