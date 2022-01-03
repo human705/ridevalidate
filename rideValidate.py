@@ -36,11 +36,19 @@ logging.basicConfig(level=logging.INFO,
 # Creating a logging object
 logger = logging.getLogger()
 
-fileName = sys.argv[1]
+
+# Process input parameters
+# TODO --- Split to a new module to handle input parameters
+argAll = sys.argv
+for p in range(1, len(sys.argv)):
+    argPart = sys.argv[p].split(":")
+
+# fileName = sys.argv[1]
+fileName = argPart[1]
 filePath = 'data'
 
 # function to return the file extension
-fileExt = pathlib.Path(sys.argv[1]).suffix
+fileExt = pathlib.Path(fileName).suffix
 if (fileExt == ".fit"):
     logging.info("Got a " + fileExt +
                  " file. Importing and converting to json")
