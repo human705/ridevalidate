@@ -112,6 +112,8 @@ def loadFitToList(_myfileName, _myPath):
                     myTrackPoint = []
                     # counter += 1
 
+# Build and return a GC json file from imported information from different type file
+
 
 def buildGCRideFile(_samplesList, _myfileName, _rideStartTime):
     # Remove original extention
@@ -136,7 +138,7 @@ def buildGCRideFile(_samplesList, _myfileName, _rideStartTime):
                 "Aerobic Training Effect": "0 ",
                 "Anaerobic TISS": "0 ",
                 "Anaerobic Training Effect": "0 ",
-                "Athlete": "Peter Test ",
+                "Athlete": " ",
                 "Average Cadence": "0 ",
                 "Average Heart Rate": "0 ",
                 "Average Power": "0 ",

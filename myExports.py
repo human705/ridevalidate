@@ -5,8 +5,10 @@ import json
 
 logger = myLogger.logging.getLogger()
 
+# Build a GC json file with the same name as the imported file
 
-def buildGCJSONFile(_myPath, _myfileName, _importedRide, _rideStartTime):
+
+def writeGCJSONFile(_myPath, _myfileName, _importedRide, _rideStartTime):
     # Remove original extention
     split_tup = os.path.splitext(_myfileName)
     fn = split_tup[0]
@@ -25,7 +27,7 @@ def buildGCJSONFile(_myPath, _myfileName, _importedRide, _rideStartTime):
         json.dump(_importedRide, write_file, indent=2)
 
 
-def buildCSVFile(_myPath, _myfileName, _importedSamples):
+def writeCSVFile(_myPath, _myfileName, _importedSamples):
     # logger.info("Writing CSV file")
     # with open(myPath + '/' + myfileName + '.csv', 'w', newline='') as f:
     #     # using csv.writer method from CSV package

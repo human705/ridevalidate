@@ -1,6 +1,8 @@
 # import fitdecode
 import csv
 import datetime
+from datetime import datetime
+from datetime import timedelta
 import sys
 import json
 import logging
@@ -16,6 +18,8 @@ import myUtils
 import plotTests
 # import geoCalculations
 import myExports
+import calcPower
+import gcHelpers
 
 
 # Check to see if we have info to proceed
@@ -46,6 +50,8 @@ for p in range(1, len(sys.argv)):
 # fileName = sys.argv[1]
 fileName = argPart[1]
 filePath = 'data'
+importedRide = {}
+rideStartTime = 0
 
 # function to return the file extension
 fileExt = pathlib.Path(fileName).suffix
@@ -60,11 +66,11 @@ if (fileExt == ".fit"):
     importedRide = importFIT.buildGCRideFile(
         importedSamples, fileName, rideStartTime)
     # Write files
-    myExports.buildGCJSONFile(filePath, fileName, importedRide, rideStartTime)
-    myExports.buildCSVFile(filePath, fileName, importedSamples)
+    myExports.writeGCJSONFile(filePath, fileName, importedRide, rideStartTime)
+    myExports.writeCSVFile(filePath, fileName, importedSamples)
 
 elif (fileExt == '.json'):
-    logging.info("Got a " + fileExt + " file. Moving on.")
+    logging.info("Got a " + fileExt + " file.")
     # Read existing GC JSON file
     f = open(filePath + '/' + fileName, encoding='utf-8-sig')
     # f = open('data/2021_12_12_08_56_42.json')
@@ -73,6 +79,25 @@ elif (fileExt == '.json'):
     importedSamples = copy.deepcopy(data['RIDE']['SAMPLES'])
     # Closing file
     f.close()
+
+    # Calculate power based on the Gribble method
+    newSamples = calcPower.calcPowerGribble(importedSamples)
+    # Write new file
+    strDateTime = data['RIDE']['STARTTIME']
+    rideStartTime = datetime.strptime(
+        strDateTime, '%Y\\/%m\\/%d %H:%M:%S')
+    # Add 1 hour to start time to create a new GC file for comparison
+    rideStartTime = rideStartTime + timedelta(hours=1)
+    myRide = gcHelpers.buildGCRideShell(rideStartTime)
+    myRide['RIDE']['SAMPLES'] = newSamples
+    myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime)
+
+    # Calculate power using the GC method
+    # Calculate power based on the GC method
+    newSamples = calcPower.calcPowerGC(importedSamples)
+    # Add 2 hours to datetime object
+    rideStartTime = rideStartTime + timedelta(hours=1)
+
 else:
     logging.error('We can only process fit or json files. Aborting...')
     sys.exit("We can only process fit or json files. Aborting...")
