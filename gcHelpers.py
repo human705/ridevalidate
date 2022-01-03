@@ -4,7 +4,7 @@ import myLogger
 logger = myLogger.logging.getLogger()
 
 
-def buildGCRideShell(_rideStartTime):
+def buildGCRideShell(_rideStartTime, _keyWords):
     # Remove original extention
     # split_tup = os.path.splitext(_myfileName)
     # fn = split_tup[0]
@@ -48,7 +48,7 @@ def buildGCRideShell(_rideStartTime):
                 "File Format": " ",
                 "Filename": " ",
                 "GOVSS": "0 ",
-                "Keywords": " ",
+                "Keywords": _keyWords,
                 "LTHR detected": "0 ",
                 "LTS detected": "0 ",
                 "Month": myMonth,

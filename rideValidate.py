@@ -52,6 +52,8 @@ fileName = argPart[1]
 filePath = 'data'
 importedRide = {}
 rideStartTime = 0
+importedSamples = []
+strDateTime = ""
 
 # function to return the file extension
 fileExt = pathlib.Path(fileName).suffix
@@ -77,31 +79,32 @@ elif (fileExt == '.json'):
     # returns JSON object as# a dictionary
     data = json.load(f)
     importedSamples = copy.deepcopy(data['RIDE']['SAMPLES'])
-    # Closing file
-    f.close()
-
-    # Calculate power based on the Gribble method
-    newSamples = calcPower.calcPowerGribble(importedSamples)
-    # Write new file
     strDateTime = data['RIDE']['STARTTIME']
     rideStartTime = datetime.strptime(
         strDateTime, '%Y\\/%m\\/%d %H:%M:%S')
-    # Add 1 hour to start time to create a new GC file for comparison
-    rideStartTime = rideStartTime + timedelta(hours=1)
-    myRide = gcHelpers.buildGCRideShell(rideStartTime)
-    myRide['RIDE']['SAMPLES'] = newSamples
-    myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime)
-
-    # Calculate power using the GC method
-    # Calculate power based on the GC method
-    newSamples = calcPower.calcPowerGC(importedSamples)
-    # Add 2 hours to datetime object
-    rideStartTime = rideStartTime + timedelta(hours=1)
+    # Closing file
+    f.close()
 
 else:
     logging.error('We can only process fit or json files. Aborting...')
     sys.exit("We can only process fit or json files. Aborting...")
 
+# Calculate power based on the Gribble method
+newSamples = calcPower.calcPowerGribble(importedSamples)
+
+# Add 1 hour to start time to create a new GC file for comparison
+rideStartTime = rideStartTime + timedelta(hours=1)
+myRide = gcHelpers.buildGCRideShell(rideStartTime, 'GribblePower')
+myRide['RIDE']['SAMPLES'] = newSamples
+myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime)
+
+# Calculate power based on the GC method
+newSamples = calcPower.calcPowerGC(importedSamples)
+# Add another hour to datetime object to create different files
+rideStartTime = rideStartTime + timedelta(hours=1)
+myRide = gcHelpers.buildGCRideShell(rideStartTime, 'GC_Power')
+myRide['RIDE']['SAMPLES'] = newSamples
+myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime)
 
 # Show plot
 # plotTests.testPlotHist(importedSamples)

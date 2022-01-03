@@ -97,7 +97,7 @@ def calcPowerGC(_rideSamples):
     for i in range(smoothPoints, len(newSamples), -1):
         rtot += newSamples[i]['WATTS']
 
-    print("rtot: " + rtot)
+    logger.debug("rtot: " + str(rtot))
     # //// now run backwards setting the rolling average
     # //for (int i=ride->dataPoints().count()-1; i>=smoothPoints; i--) {
     # //    double here = ride->dataPoints()[i]->watts;

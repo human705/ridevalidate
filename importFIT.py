@@ -159,7 +159,7 @@ def buildGCRideFile(_samplesList, _myfileName, _rideStartTime):
                 "File Format": " ",
                 "Filename": fn + ".json",
                 "GOVSS": "0 ",
-                "Keywords": " ",
+                "Keywords": "DozenCycle ",
                 "LTHR detected": "0 ",
                 "LTS detected": "0 ",
                 "Month": myMonth,
