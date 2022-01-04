@@ -1,19 +1,35 @@
 import os
 import myLogger
+import pytz  # $ pip install pytz
+from pytz import timezone
+import datetime
+from datetime import datetime
+from datetime import timedelta
 
 logger = myLogger.logging.getLogger()
 
 
-def buildGCRideShell(_rideStartTime, _keyWords):
+def buildGCRideShell(_rideStartTime, _keyWords, _myfileName, _rideSamples):
     # Remove original extention
-    # split_tup = os.path.splitext(_myfileName)
-    # fn = split_tup[0]
-    # fe = split_tup[1]
+    split_tup = os.path.splitext(_myfileName)
+    fn = split_tup[0]
+    fe = split_tup[1]
     # Convert date obj to string
-    d = _rideStartTime.strftime('%Y\/%m\/%d %H:%M:%S')
+    d = _rideStartTime.strftime("%Y/%m/%d %H:%M:%S %Z ")
     myMonth = _rideStartTime.strftime('%B')
     myYear = _rideStartTime.strftime('%Y')
     myWeekDay = _rideStartTime.strftime('%A')
+
+    # Adjust for UTC time
+    time_now = _rideStartTime.astimezone(timezone('UTC'))
+    d = time_now.strftime("%Y/%m/%d %H:%M:%S %Z ")
+    # timezone = pytz.timezone("UTC")
+    # d_aware = timezone.localize(time_now)
+    # myTimeZone = datetime.utcnow().astimezone().tzinfo
+    # tz = get_localzone()
+    # est_now = d_aware.astimezone(pytz.timezone("America/New_York"))
+    # rideStartTime = rideStartTime - timedelta(hours=5)
+
     # Create a GC compatible JSON File
     logger.info("Creating a GC file shell.")
     _importedRide = {
@@ -59,7 +75,7 @@ def buildGCRideShell(_rideStartTime, _keyWords):
                 "RPE": "0 ",
                 "Recovery Time": "0 ",
                 "Route": " ",
-                "Source Filename": " ",
+                "Source Filename": _myfileName,
                 "Sport": " ",
                 "SubSport": " ",
                 "SwimScore": "0 ",
@@ -68,11 +84,11 @@ def buildGCRideShell(_rideStartTime, _keyWords):
                 "Weekday": myWeekDay,
                 "Weight": "0 ",
                 "Work": "0 ",
-                "Workout Code": " ",
+                "Workout Code": fn + ' -- ' + _keyWords,
                 "Year": myYear,
                 "xPower": "0 "
             },
-            "SAMPLES": " "
+            "SAMPLES": _rideSamples
         }
     }
     return _importedRide

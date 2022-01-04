@@ -6,7 +6,8 @@ from datetime import timedelta
 import sys
 import json
 import logging
-
+import pytz  # $ pip install pytz
+# from tzlocal import get_localzone  # $ pip install tzlocal
 import copy
 import pathlib
 import pandas as pd
@@ -65,8 +66,12 @@ if (fileExt == ".fit"):
     myRetObj = importFIT.loadFitToJSON(fileName, filePath)
     importedSamples = myRetObj['importedSamples']
     rideStartTime = myRetObj['rideStartTime']
-    importedRide = importFIT.buildGCRideFile(
-        importedSamples, fileName, rideStartTime)
+    # importedRide = importFIT.buildGCRideFile(
+    #     importedSamples, fileName, rideStartTime)
+
+    importedRide = gcHelpers.buildGCRideShell(
+        rideStartTime, 'DozenCycle', fileName, importedSamples)
+
     # Write files
     myExports.writeGCJSONFile(filePath, fileName, importedRide, rideStartTime)
     myExports.writeCSVFile(filePath, fileName, importedSamples)
@@ -80,8 +85,19 @@ elif (fileExt == '.json'):
     data = json.load(f)
     importedSamples = copy.deepcopy(data['RIDE']['SAMPLES'])
     strDateTime = data['RIDE']['STARTTIME']
+    # Convert string to datetime obj
     rideStartTime = datetime.strptime(
-        strDateTime, '%Y\/%m\/%d %H:%M:%S')
+        strDateTime, "%Y/%m/%d %H:%M:%S %Z ")
+
+    # Adjust for EDT time
+    utc_now = rideStartTime
+    timezone = pytz.timezone("UTC")
+    d_aware = timezone.localize(utc_now)
+    myTimeZone = datetime.utcnow().astimezone().tzinfo
+    # tz = get_localzone()
+    est_now = d_aware.astimezone(pytz.timezone("America/New_York"))
+    # rideStartTime = rideStartTime - timedelta(hours=5)
+    rideStartTime = est_now
     # Closing file
     f.close()
 
@@ -94,7 +110,8 @@ newSamples = calcPower.calcPowerGribble(importedSamples)
 
 # Add 1 hour to start time to create a new GC file for comparison
 rideStartTime = rideStartTime + timedelta(hours=1)
-myRide = gcHelpers.buildGCRideShell(rideStartTime, 'GribblePower')
+myRide = gcHelpers.buildGCRideShell(
+    rideStartTime, 'GribblePower', fileName, '')
 myRide['RIDE']['SAMPLES'] = newSamples
 myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime)
 
@@ -102,7 +119,7 @@ myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime)
 newSamples = calcPower.calcPowerGC(importedSamples)
 # Add another hour to datetime object to create different files
 rideStartTime = rideStartTime + timedelta(hours=1)
-myRide = gcHelpers.buildGCRideShell(rideStartTime, 'GC_Power')
+myRide = gcHelpers.buildGCRideShell(rideStartTime, 'GC_Power', fileName, '')
 myRide['RIDE']['SAMPLES'] = newSamples
 myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime)
 

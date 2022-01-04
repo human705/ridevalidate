@@ -1,1 +1,1 @@
-C:/Users/peter/miniconda3/envs/RideFileValidator/python.exe c:/Users/peter/VSCode/github/ridevalidate/rideValidate.py --fitfile:lh30.fit
+C:/Users/peter/miniconda3/envs/RideFileValidator/python.exe c:/Users/peter/VSCode/github/ridevalidate/rideValidate.py --fitfile:PortJeffClassic.fit
