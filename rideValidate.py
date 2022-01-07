@@ -54,6 +54,7 @@ filePath = 'data'
 importedRide = {}
 rideStartTime = 0
 importedSamples = []
+csvSamples = []
 strDateTime = ""
 
 # function to return the file extension
@@ -74,7 +75,9 @@ if (fileExt == ".fit"):
 
     # Write files
     myExports.writeGCJSONFile(filePath, fileName, importedRide, rideStartTime)
-    myExports.writeCSVFile(filePath, fileName, importedSamples)
+    csvSamples = myUtils.calcSlopeFromData(importedSamples)
+
+    myExports.writeCSVFile(filePath, fileName, csvSamples)
 
 elif (fileExt == '.json'):
     logging.info("Got a " + fileExt + " file.")
@@ -105,11 +108,14 @@ else:
     logging.error('We can only process fit or json files. Aborting...')
     sys.exit("We can only process fit or json files. Aborting...")
 
+
+# Calculate slope from distance and elevation
+
 # Calculate power based on the Gribble method
 newSamples = calcPower.calcPowerGribble(importedSamples)
-
 # Add 1 hour to start time to create a new GC file for comparison
 rideStartTime = rideStartTime + timedelta(hours=1)
+
 myRide = gcHelpers.buildGCRideShell(
     rideStartTime, 'GribblePower', fileName, '')
 myRide['RIDE']['SAMPLES'] = newSamples
