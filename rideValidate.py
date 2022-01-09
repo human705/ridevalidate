@@ -73,10 +73,16 @@ if (fileExt == ".fit"):
     importedRide = gcHelpers.buildGCRideShell(
         rideStartTime, 'DozenCycle', fileName, importedSamples)
 
-    # Write files
+    # Write JSON file from recorded data
     myExports.writeGCJSONFile(filePath, fileName, importedRide, rideStartTime)
+
+    # Add calculated columns to CSV file from original data
     csvSamples = myUtils.calcSlopeFromData(importedSamples)
 
+    # Replace recorded slope from Alt and Dis
+    importedSamples = myUtils.replaceSlopeFromData(importedSamples)
+
+    # Write CSV file
     myExports.writeCSVFile(filePath, fileName, csvSamples)
 
 elif (fileExt == '.json'):
@@ -109,13 +115,11 @@ else:
     sys.exit("We can only process fit or json files. Aborting...")
 
 
-# Calculate slope from distance and elevation
-
 # Calculate power based on the Gribble method
 newSamples = calcPower.calcPowerGribble(importedSamples)
 # Add 1 hour to start time to create a new GC file for comparison
 rideStartTime = rideStartTime + timedelta(hours=1)
-
+# Create a GC json file
 myRide = gcHelpers.buildGCRideShell(
     rideStartTime, 'GribblePower', fileName, '')
 myRide['RIDE']['SAMPLES'] = newSamples
@@ -125,12 +129,14 @@ myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime)
 newSamples = calcPower.calcPowerGC(importedSamples)
 # Add another hour to datetime object to create different files
 rideStartTime = rideStartTime + timedelta(hours=1)
+# Create a GC json file
 myRide = gcHelpers.buildGCRideShell(rideStartTime, 'GC_Power', fileName, '')
 myRide['RIDE']['SAMPLES'] = newSamples
 myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime)
 
 # Show plot
-# plotTests.testPlotHist(importedSamples)
+# plotTests.testSlopePlot(importedSamples)
+plotTests.mySmoothingPlot(importedSamples)
 
 # Run tests
 badPoints = 0

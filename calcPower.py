@@ -26,6 +26,7 @@ ATire = 0.031
 CwaBike = afCdBike * (afCATireV * ATire + afCATireH * ATire + afAFrame)
 DraftM = 0.7  # Group ride coeficient. Set to 1 for ridding alone
 afCm = 1.025
+gConst = 9.8067
 
 
 def calcPowerGC(_rideSamples):
@@ -52,7 +53,7 @@ def calcPowerGC(_rideSamples):
             CrDyn = 0.1 * math.cos(slope)
 
             Ka = 0
-            Frg = 9.81 * massTotal * \
+            Frg = gConst * massTotal * \
                 (CrEff * math.cos(slope) + math.sin(slope))
             windSpeed = 0  # W in GC
             vw = V+windSpeed  # Wind speed against cyclist = cyclist speed + wind speed
@@ -70,15 +71,19 @@ def calcPowerGC(_rideSamples):
             accel = 0  # p->kphd
             if (deltaTime > 0):
                 accel = deltaSpeed / deltaTime
-            if accel > 1:
-                accel = 1
-            else:
-                accel = accel * V * massTotal
+            # if accel > 1:
+            #     accel = 1
+            # else:
+            #     accel = accel * V * massTotal
+            accelPower = accel * V * massTotal
 
-            watts = (afCm * V * (Ka * (vw * vw) + Frg + V * CrDyn)) + accel
+            watts = (afCm * V * (Ka * (vw * vw) + Frg + V * CrDyn)) + accelPower
             # ride->command->setPointValue(i, RideFile::watts, watts > 0 ? (watts > 1000 ? 1000 : watts) : 0);
+            logger.debug("Watts: " + str(watts))
         else:
             # No power produced by rider
+            watts = 0
+        if (watts < 0):
             watts = 0
         current['WATTS'] = watts
 
@@ -131,15 +136,27 @@ def calcPowerGribble(_rideSamples):
             slope = math.atan(current['SLOPE']/100)
             # Cyclist speed m/s plus Wind speed
             V = (current['KPH'] * 0.27777777777778) + windSpeed
-            fGravity = 9.8067 * math.sin(math.atan(slope)) * massTotal
-            fRolling = 9.8067 * math.cos(math.atan(slope)) * massTotal * Crr
+            fGravity = gConst * math.sin(math.atan(slope)) * massTotal
+            fRolling = gConst * math.cos(math.atan(slope)) * massTotal * Crr
             fDrag = 0.5 * CdA * V * V * Rho
             fdtLoss = (1 - (dtLoss / 100))
             fResistance = fGravity + fRolling + fDrag
-            watts = fdtLoss * fResistance * V
+            # Acceleration
+            deltaSpeed = (current['KPH'] - prev['KPH']) / 3.6
+            deltaTime = current['SECS'] - prev['SECS']
+            accel = 0
+            if (deltaTime > 0):
+                accel = deltaSpeed / deltaTime
+            accelPower = accel * V * massTotal
+            # Always subtract acceleration or deceleration power
+            if (accelPower > 0):
+                accelPower = accelPower * -1
+            watts = (fdtLoss * fResistance * V) + accelPower
             # ride->command->setPointValue(i, RideFile::watts, watts > 0 ? (watts > 1000 ? -1 : watts) : 0);
         else:
             # No power produced by rider
+            watts = 0
+        if (watts < 0):
             watts = 0
         current['WATTS'] = watts
     return (newSamples)
