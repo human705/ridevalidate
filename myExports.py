@@ -8,7 +8,7 @@ logger = myLogger.logging.getLogger()
 # Build a GC json file with the same name as the imported file
 
 
-def writeGCJSONFile(_myPath, _myfileName, _importedRide, _rideStartTime):
+def writeGCJSONFile(_myPath, _myfileName, _importedRide, _rideStartTime, _altFName):
     # Remove original extention
     split_tup = os.path.splitext(_myfileName)
     fn = split_tup[0]
@@ -19,8 +19,11 @@ def writeGCJSONFile(_myPath, _myfileName, _importedRide, _rideStartTime):
     myHour = _rideStartTime.strftime('%H')
     myMin = _rideStartTime.strftime('%M')
     mySec = _rideStartTime.strftime('%S')
-    gcFilename = myYear + '_' + myMonth + '_' + \
-        myDay + '_' + myHour + '_' + myMin + '_' + mySec
+    if (_altFName == ''):
+        gcFilename = myYear + '_' + myMonth + '_' + \
+            myDay + '_' + myHour + '_' + myMin + '_' + mySec
+    else:
+        gcFilename = _altFName
     # Write pretty print JSON data to file
     logger.info("Writing JSON file: " + _myPath + '/' + gcFilename + '.json')
     with open(_myPath + '/' + gcFilename + '.json', "w") as write_file:

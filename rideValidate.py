@@ -60,12 +60,16 @@ newSamples = []
 csvSamples = []
 strDateTime = ""
 
-showPlots = False
+# TODO --- Make parameters for the following
+showSlopePlots = False
+showPowerPlots = False
 calculatePower = True
 smoothSlope = True
 calculateSlope = True
+smoothPower = False
+createRideFileBackup = True
 
-# function to return the file extension
+# Return the file extension
 fileExt = pathlib.Path(fileName).suffix
 if (fileExt == ".fit"):
     logging.info("Got a " + fileExt +
@@ -76,11 +80,13 @@ if (fileExt == ".fit"):
     importedSamples = myRetObj['importedSamples']
     rideStartTime = myRetObj['rideStartTime']
 
-    # Create GC JSON ride file
-    importedRide = gcHelpers.buildGCRideShell(
-        rideStartTime, 'DozenCycle', fileName, importedSamples)
-    # Write JSON file from recorded data
-    myExports.writeGCJSONFile(filePath, fileName, importedRide, rideStartTime)
+    if (createRideFileBackup):
+        # Create GC JSON ride file
+        importedRide = gcHelpers.buildGCRideShell(
+            rideStartTime, 'DozenCycle', fileName, importedSamples)
+        # Write JSON file from recorded data
+        myExports.writeGCJSONFile(
+            filePath, fileName, importedRide, rideStartTime, fileName + '-bak')
 
     # # Add add calculated slope to CSV file from original data
     # csvSamples = myUtils.calcSlopeFromData(importedSamples)
@@ -95,7 +101,6 @@ elif (fileExt == '.json'):
     logging.info("Got a " + fileExt + " file.")
     # Read existing GC JSON file
     f = open(filePath + '/' + fileName, encoding='utf-8-sig')
-    # f = open('data/2021_12_12_08_56_42.json')
     # returns JSON object as# a dictionary
     data = json.load(f)
     importedSamples = copy.deepcopy(data['RIDE']['SAMPLES'])
@@ -103,7 +108,6 @@ elif (fileExt == '.json'):
     # Convert string to datetime obj
     rideStartTime = datetime.strptime(
         strDateTime, "%Y/%m/%d %H:%M:%S %Z ")
-
     # Adjust for EDT time
     utc_now = rideStartTime
     timezone = pytz.timezone("UTC")
@@ -120,21 +124,11 @@ else:
     logging.error('We can only process fit or json files. Aborting...')
     sys.exit("We can only process fit or json files. Aborting...")
 
-
-if (showPlots):
-    # Show plot
-    # plotTests.testSlopePlot(importedSamples)
-    plotTests.mySmoothingPlot(importedSamples)
-
 if (calculateSlope):
     # Replace recorded slope from Alt and Dis
     newSamples = myUtils.replaceSlopeFromData(importedSamples)
-
-if not newSamples:  # List is empty
-    newSamples = importedSamples
-
-if (smoothSlope):
-    newSamples = myMathSmooth.replaceSlope(newSamples)
+    if (smoothSlope):
+        newSamples = myMathSmooth.replaceSlope(newSamples)
 
 if not newSamples:  # List is empty
     newSamples = importedSamples
@@ -143,63 +137,79 @@ if (calculatePower):
     # Calculate power based on the Gribble method
     newSamples = calcPower.calcPowerGribble(newSamples)
     # Add 1 hour to start time to create a new GC file for comparison
-    rideStartTime = rideStartTime + timedelta(hours=1)
+    # TODO rideStartTime = rideStartTime + timedelta(hours=1)
     # Create a GC json file
     myRide = gcHelpers.buildGCRideShell(
         rideStartTime, 'GribblePower', fileName, '')
     myRide['RIDE']['SAMPLES'] = newSamples
-    myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime)
+    myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime, '')
+    if (smoothPower):
+        newPowerSamples = myMathSmooth.replacePower(myRide['RIDE']['SAMPLES'])
+        myRide = gcHelpers.buildGCRideShell(
+            rideStartTime, 'GribblePower-Smooth', fileName, '')
+        myRide['RIDE']['SAMPLES'] = newPowerSamples
+        myExports.writeGCJSONFile(
+            filePath, fileName, myRide, rideStartTime, '')
 
-    # Calculate power based on the GC method
-    newSamples = calcPower.calcPowerGC(newSamples)
-    # Add another hour to datetime object to create different files
-    rideStartTime = rideStartTime + timedelta(hours=1)
-    # Create a GC json file
-    myRide = gcHelpers.buildGCRideShell(
-        rideStartTime, 'GC_Power', fileName, '')
-    myRide['RIDE']['SAMPLES'] = newSamples
-    myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime)
+    # # Calculate power based on the GC method
+    # newSamples = calcPower.calcPowerGC(newSamples)
+    # # Add another hour to datetime object to create different files
+    # rideStartTime = rideStartTime + timedelta(hours=1)
+    # # Create a GC json file
+    # myRide = gcHelpers.buildGCRideShell(
+    #     rideStartTime, 'GC_Power', fileName, '')
+    # myRide['RIDE']['SAMPLES'] = newSamples
+    # myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime)
+
 if not newSamples:  # List is empty
     newSamples = importedSamples
+
+if (showPowerPlots):
+    # Show plot
+    plotTests.mySmoothingPowerPlot(newSamples)
+
+if (showSlopePlots):
+    # Show plot
+    plotTests.mySmoothingSlopePlot(newSamples)
 
 
 # Run tests
 badPoints = 0
-for pt in range(1, len(newSamples)-1):
-    prev = newSamples[pt-1]
-    current = newSamples[pt]
-    next = newSamples[pt+1]
+# for pt in range(1, len(newSamples)-1):
+#     prev = newSamples[pt-1]
+#     current = newSamples[pt]
+#     next = newSamples[pt+1]
 
-    # Segment distance based on LAT and LON
-    # checkSegmentDist = rideChecks.checkSegmentDist(
-    #     current, prev, 5)
+# Segment distance based on LAT and LON
+# checkSegmentDist = rideChecks.checkSegmentDist(
+#     current, prev, 5)
 
-    # Time in file from SECS
-    # timeMark = myUtils.secToTime(current['SECS'])
-    # Speed meters / second from LAT and LON
-    # segmentSpeed = ((current['KM'] - prev['KM']) *
-    #                 1000) / (current['SECS'] - prev['SECS'])
-    # speedDiff = abs(segmentSpeed - (current['KPH'] * 0.2777778))
+# Time in file from SECS
+# timeMark = myUtils.secToTime(current['SECS'])
+# Speed meters / second from LAT and LON
+# segmentSpeed = ((current['KM'] - prev['KM']) *
+#                 1000) / (current['SECS'] - prev['SECS'])
+# speedDiff = abs(segmentSpeed - (current['KPH'] * 0.2777778))
 
-    # if (speedDiff > 5):
-    #     logger.info("Speed variance of " + str(speedDiff) +
-    #                 " for time index: " + str(current['SECS']) + " distance: " + str(current['KM']) + ' time: ' + timeMark)
+# if (speedDiff > 5):
+#     logger.info("Speed variance of " + str(speedDiff) +
+#                 " for time index: " + str(current['SECS']) + " distance: " + str(current['KM']) + ' time: ' + timeMark)
 
-    # if (checkSegmentDist > 0):
-    #     logger.info("Distance variance of " + str(checkSegmentDist) +
-    #                 " for time index: " + str(current['SECS']) + " distance: " + str(current['KM']) + ' time: ' + timeMark)
+# if (checkSegmentDist > 0):
+#     logger.info("Distance variance of " + str(checkSegmentDist) +
+#                 " for time index: " + str(current['SECS']) + " distance: " + str(current['KM']) + ' time: ' + timeMark)
 
-    # slopeRun = ((current['KM'] - prev['KM']) * 1000)
-    # slopeRise = current['ALT'] - prev['ALT']
-    # if (slopeRun > 0):
-    #     calcSlope = (slopeRise / slopeRun) * 100
-    # else:
-    #     calcSlope = 0
+# slopeRun = ((current['KM'] - prev['KM']) * 1000)
+# slopeRise = current['ALT'] - prev['ALT']
+# if (slopeRun > 0):
+#     calcSlope = (slopeRise / slopeRun) * 100
+# else:
+#     calcSlope = 0
 
-    # if ((calcSlope - current['SLOPE']) > 1):
-    #     badPoints += 1
-    #     logger.info("Slope variance of " + str(calcSlope - current['SLOPE']) + " timeidx: " + str(current['SECS']) +
-    #                 " rec slope: " + str(current['SLOPE']) + " calcSlope: " + str(calcSlope) + " @ distance: " + str(current['KM']) + ' time: ' + timeMark)
+# if ((calcSlope - current['SLOPE']) > 1):
+#     badPoints += 1
+#     logger.info("Slope variance of " + str(calcSlope - current['SLOPE']) + " timeidx: " + str(current['SECS']) +
+#                 " rec slope: " + str(current['SLOPE']) + " calcSlope: " + str(calcSlope) + " @ distance: " + str(current['KM']) + ' time: ' + timeMark)
 
 
 # ridePoints = []

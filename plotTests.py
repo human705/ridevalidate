@@ -37,7 +37,7 @@ def smoothConvolve(y, box_pts):
 # from scipy.signal import savgol_filter
 # yhat = savgol_filter(y, 51, 3) # window size 51, polynomial order 3
 # savitzky_golay
-def mySmoothingPlot(_myData):
+def mySmoothingSlopePlot(_myData):
     # plt.style.use('fivethirtyeight')
     # Read list of objects
     data = pd.DataFrame(_myData)
@@ -60,9 +60,9 @@ def mySmoothingPlot(_myData):
     # plt.plot(lowess[:, 0], lowess[:, 1], color='yellow')
 
     plt.legend()
-    plt.title('Slope at time')
-    plt.xlabel('Time (Secs)')
-    plt.ylabel('Slope')
+    plt.title('Slope over distance')
+    plt.xlabel('Distance (KM)')
+    plt.ylabel('Slope %')
     plt.tight_layout()
     plt.show()
 
@@ -88,9 +88,30 @@ def mySlopePlot(_myData):
     plt.xlabel('Time (Secs)')
     plt.ylabel('Slope')
     plt.tight_layout()
-
     plt.show()
     test = 1
+
+
+# savitzky_golay
+def mySmoothingPowerPlot(_myData):
+    # Read list of dictionaries
+    data = pd.DataFrame(_myData)
+    x = data['KM']
+    y = data['WATTS']
+    windowSize = 21  # Myst be odd number
+    polyOrder = 3
+    # yhat = savitzky_golay(y, 51, 3) # window size 51, polynomial order 3
+    # window size 51, polynomial order 3
+    yhat = savgol_filter(y, windowSize, polyOrder)
+    plt.plot(x, y, color='blue', label='original')
+    plt.plot(x, yhat, color='red', label='zavgol')
+    plt.plot(x, smoothConvolve(y, 19), 'g-', lw=2, label='convolve')
+    plt.legend()
+    plt.title('Power over Distance')
+    plt.xlabel('Distance (KM)')
+    plt.ylabel('Watts')
+    plt.tight_layout()
+    plt.show()
 
 
 # f = open('data/GC-FixedAlt.json', encoding='utf-8-sig')
