@@ -1,6 +1,6 @@
 import time
 import copy
-
+import math
 import myLogger
 
 logger = myLogger.logging.getLogger()
@@ -10,7 +10,25 @@ def secToTime(seconds):
     return time.strftime("%H:%M:%S", time.gmtime(seconds))
 
 
+def cleanupDisc(_dict):
+   # Replace NaN with zeros and make HR and CAD integers
+    for item in _dict:
+        if 'HR' in item:
+            if (math.isnan(item['HR'])):
+                item['HR'] = 0
+            else:
+                item['HR'] = int(item['HR'])
+
+        if 'CAD' in item:
+            if (math.isnan(item['CAD'])):
+                item['CAD'] = 0
+            else:
+                item['CAD'] = int(item['CAD'])
+    return _dict
+
 # Replace slope from altitude and distance
+
+
 def replaceSlopeFromData(_samples):
     logger.info("Replacing slope form distance and altitude.")
     # newSamples = []

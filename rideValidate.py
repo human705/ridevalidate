@@ -11,6 +11,8 @@ import pytz  # $ pip install pytz
 import copy
 import pathlib
 import pandas as pd
+import xml.etree.ElementTree as ET
+import re
 
 # My modules
 import importFIT
@@ -119,6 +121,23 @@ elif (fileExt == '.json'):
     rideStartTime = est_now
     # Closing file
     f.close()
+
+elif (fileExt == '.tcx'):
+    logging.info("Got a " + fileExt + " file.")
+    with open('1.tcx') as xml_file:
+        xml_str = xml_file.read()
+        xml_str = re.sub(' xmlns="[^"]+"', '',
+                         xml_str.decode('utf-8'), count=1)
+        root = ET.fromstring(xml_str)
+        activities = root.findall('.//Activity')
+        for activity in activities:
+            print('-- {} --'.format(activity.attrib['Sport']))
+            tracking_points = activity.findall('.//Trackpoint')
+            for tracking_point in list(tracking_points):
+                children = list(tracking_point)
+                print('Time: {}, HR Value: {}'.format(children[0].text,
+                                                      list(children[4])[0].text))
+
 
 else:
     logging.error('We can only process fit or json files. Aborting...')

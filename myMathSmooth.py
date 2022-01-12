@@ -1,5 +1,5 @@
 import pandas as pd
-import json
+import math
 import copy
 from matplotlib import pyplot as plt
 import numpy as np
@@ -44,8 +44,22 @@ def replaceSlope(_myData):
     data['NewSlope'] = yhat
     data.drop('SLOPE', axis=1, inplace=True)
     data.rename(columns={'NewSlope': 'SLOPE'}, inplace=True)
+    # data['HR'] = data['HR'].astype(int)
+    # data['HR'] = data['HR'].apply(pd.to_numeric(data['HR'],
+    #                                             errors='ignore', downcast='integer'))
+    # data = pd.to_numeric(data['HR'], errors='ignore', downcast='integer')
     # print(data)
+
     myNewList = data.to_dict('records')
+    # for item in myNewList:
+    #     if (math.isnan(item['HR'])):
+    #         item['HR'] = 0
+    #     else:
+    #         item['HR'] = int(item['HR'])
+    #     if (math.isnan(item['CAD'])):
+    #         item['CAD'] = 0
+    #     else:
+    #         item['CAD'] = int(item['CAD'])
     # myNewList = data.values.tolist()
     return myNewList
     # i = 1

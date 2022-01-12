@@ -3,67 +3,171 @@ import datetime
 import myLogger
 import os
 import gcHelpers
+from datetime import datetime
+import math
+
+import myUtils
 
 # FIT file structure with Dozen Cycle add-on From Garmin Connect
 headings = ['timestamp', 'position_lat', 'position_long', 'distance', 'enhanced_altitude', 'altitude', 'enhanced_speed', 'speed',
             'unknown_61', 'unknown_66', 'heart_rate', 'cadence', 'temperature', 'fractional_cadence', 'ePwr', 'GrdPCT', 'nPwr', 'eFTP']
+# With DozenCycle
+# 00 timestamp: 2021-12-23 16:25:27+00:00
+# 01 position_lat: 487418114
+# 02 position_long: -874093043
+# 03 distance: 200.1
+# 04 enhanced_altitude: 45.0
+# 05 altitude: 45.0
+# 06 enhanced_speed: 5.244
+# 07 speed: 5.244
+# 08 unknown_61: 2729
+# 09 unknown_66: 295
+# 10 heart_rate: 118
+# 11 cadence: 83
+# 12 temperature: 13
+# 13 fractional_cadence: 0.0
+# 15 ePwr: 66.64624786376953
+# 15 %Grd: 2.1860954761505127
+# 16 nPwr: 6.016199588775635
+# 17 eFTP: 0.0
 
-# timestamp: 2021-12-23 16:25:27+00:00
-# position_lat: 487418114
-# position_long: -874093043
-# distance: 200.1
-# enhanced_altitude: 45.0
-# altitude: 45.0
-# enhanced_speed: 5.244
-# speed: 5.244
-# unknown_61: 2729
-# unknown_66: 295
-# heart_rate: 118
-# cadence: 83
-# temperature: 13
-# fractional_cadence: 0.0
-# ePwr: 66.64624786376953
-# %Grd: 2.1860954761505127
-# nPwr: 6.016199588775635
-# eFTP: 0.0
+# Without DozenCycle
+# 00 timestamp: 2021-12-23 16:25:27+00:00
+# 01 position_lat: 487418114
+# 02 position_long: -874093043
+# 03 distance: 200.1
+# 04 enhanced_altitude: 45.0
+# 05 altitude: 45.0
+# 06 enhanced_speed: 5.244
+# 07 speed: 5.244
+# 08 unknown_88: 300
+# 09 heart_rate: 118
+# 10 ePwr: 0
+# 11 %Grd:
+# 12 nPwr:
+# 13 eFTP:
+
 
 logger = myLogger.logging.getLogger()
+
+# Python3 program to Convert a list to dictionary
+
+
+def ConvertListToDict(lst):
+    res_dct = {lst[i]: lst[i + 1] for i in range(0, len(lst), 2)}
+    return res_dct
+
+
+def fitToList(_frame):
+    myTrackPoint = []
+    samplePoint = {
+        # EPOCH format seconds
+        "SECS": 0,
+        "KM": 0,
+        "WATTS": 0,
+        "KPH": 0,
+        "ALT": -999,
+        "LAT": -1,
+        "LON": -1,
+        "HR": -1,
+        "CAD": -1,
+        "SLOPE": -99,
+        "TEMP": -99,
+    }
+    for i in range(len(_frame.fields)):
+        myTrackPoint.append(_frame.fields[i].name)
+        myTrackPoint.append(_frame.fields[i].value)
+    testDict = ConvertListToDict(myTrackPoint)
+    if 'timestamp' in testDict:
+        samplePoint["SECS"] = testDict['timestamp'].timestamp()
+    if 'distance' in testDict:
+        samplePoint["KM"] = testDict['distance']
+    if 'ePwr' in testDict:
+        samplePoint["WATTS"] = testDict['ePwr']
+    else:
+        samplePoint.pop('WATTS')
+    if 'altitude' in testDict:
+        samplePoint["ALT"] = testDict['altitude']
+    if 'speed' in testDict:
+        samplePoint["KPH"] = testDict['speed']
+    if 'position_lat' in testDict:
+        samplePoint["LAT"] = testDict['position_lat']
+    if 'position_long' in testDict:
+        samplePoint["LON"] = testDict['position_long']
+    if 'heart_rate' in testDict:
+        samplePoint["HR"] = int(testDict['heart_rate'])
+    else:
+        samplePoint.pop('HR')
+    if 'cadence' in testDict:
+        samplePoint["CAD"] = testDict['cadence']
+    else:
+        samplePoint.pop('CAD')
+    if '%Grd' in testDict:
+        samplePoint["SLOPE"] = testDict['%Grd']
+    if 'temperature' in testDict:
+        samplePoint["TEMP"] = testDict['temperature']
+    else:
+        samplePoint.pop('TEMP')
+
+    # print(testDict)
+    return samplePoint
 
 
 def loadFitToJSON(_myfileName, _myPath):
     logger.info("Building json objects from FIT file: " + _myfileName)
     currentSec = -1
+    startingOffset = 0
+    rideStartTime = datetime.now()
+
     # rideStartTime = datetime.datetime.utcnow()
     importedSamples = []
     with fitdecode.FitReader(_myPath + '/' + _myfileName) as fit:
         for frame in fit:
             if frame.frame_type == fitdecode.FIT_FRAME_DATA:
                 if (frame.name == "record"):
+                    sampleData = fitToList(frame)
                     if (currentSec == -1):
-                        currentSec = frame.fields[0].value.timestamp()
-                        rideStartTime = datetime.datetime.fromtimestamp(
+                        currentSec = sampleData['SECS']
+                        rideStartTime = datetime.fromtimestamp(
                             currentSec)
                         d = rideStartTime.strftime("%m/%d/%Y, %H:%M:%S")
                         logger.debug("Debug: Ride start date " + d +
                                      " timestamp: " + str(currentSec))
                         # Adjust for staring point for distance to zero.
-                        startingOffset = frame.fields[3].value
-                    sampleData = {
-                        # EPOCH format seconds
-                        "SECS": int(frame.fields[0].value.timestamp() - currentSec),
-                        "KM": (frame.fields[3].value - startingOffset) / 1000,
-                        # Estimated by Dozen Cycle
-                        "WATTS": frame.fields[14].value,
-                        "KPH": (frame.fields[7].value * 3.6),
-                        "ALT": frame.fields[5].value,
-                        "LAT": frame.fields[1].value * (180 / 2 ** 31),
-                        "LON": frame.fields[2].value * (180 / 2 ** 31),
-                        "HR": frame.fields[10].value,
-                        "CAD": frame.fields[11].value,
-                        "SLOPE": frame.fields[15].value,
-                        "TEMP": frame.fields[12].value,
-                    }
+                        startingOffset = sampleData['KM']
+                    sampleData['SECS'] = int(sampleData['SECS'] - currentSec)
+                    sampleData['KM'] = (
+                        sampleData['KM'] - startingOffset) / 1000  # Meters
+                    sampleData['KPH'] = sampleData['KPH'] * 3.6
+                    sampleData['LAT'] = sampleData['LAT'] * (180 / 2 ** 31)
+                    sampleData['LON'] = sampleData['LON'] * (180 / 2 ** 31)
+                    # sampleData = {
+                    #     # EPOCH format seconds
+                    #     "SECS": int(frame.fields[0].value.timestamp() - currentSec),
+                    #     "KM": (frame.fields[3].value - startingOffset) / 1000,
+                    #     # Estimated by Dozen Cycle
+                    #     "WATTS": frame.fields[14].value,
+                    #     "KPH": (frame.fields[7].value * 3.6),
+                    #     "ALT": frame.fields[5].value,
+                    #     "LAT": frame.fields[1].value * (180 / 2 ** 31),
+                    #     "LON": frame.fields[2].value * (180 / 2 ** 31),
+                    #     "HR": frame.fields[10].value,
+                    #     "CAD": frame.fields[11].value,
+                    #     "SLOPE": frame.fields[15].value,
+                    #     "TEMP": frame.fields[12].value,
+                    # }
                     importedSamples.append(sampleData)
+    # Replace NaN with zeros and make HR and CAD integers
+    importedSamples = myUtils.cleanupDisc(importedSamples)
+    # for item in importedSamples:
+    #     if (math.isnan(item['HR'])):
+    #         item['HR'] = 0
+    #     else:
+    #         item['HR'] = int(item['HR'])
+    #     if (math.isnan(item['CAD'])):
+    #         item['CAD'] = 0
+    #     else:
+    #         item['CAD'] = int(item['CAD'])
     retObj = {
         "importedSamples": importedSamples,
         "rideStartTime": rideStartTime
