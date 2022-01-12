@@ -64,10 +64,10 @@ strDateTime = ""
 showSlopePlots = False
 showPowerPlots = False
 calculatePower = True
-smoothSlope = True
-calculateSlope = True
 smoothPower = False
-createRideFileBackup = True
+calculateSlope = True
+smoothSlope = True
+createRideFileBackup = False
 
 # Return the file extension
 fileExt = pathlib.Path(fileName).suffix

@@ -52,7 +52,7 @@ def mySmoothingSlopePlot(_myData):
 
     plt.plot(x, y, color='blue', label='original')
     plt.plot(x, yhat, color='red', label='zavgol')
-    plt.plot(x, smoothConvolve(y, 19), 'g-', lw=2, label='convolve')
+    plt.plot(x, smoothConvolve(y, windowSize), 'g-', lw=2, label='convolve')
     # plt.plot(x, smoothFFT(x, y), color='yellow', lw=2)
 
     # lowess = sm.nonparametric.lowess(y, x, frac=0.1)
@@ -98,14 +98,14 @@ def mySmoothingPowerPlot(_myData):
     data = pd.DataFrame(_myData)
     x = data['KM']
     y = data['WATTS']
-    windowSize = 21  # Myst be odd number
+    windowSize = 31  # Myst be odd number
     polyOrder = 3
     # yhat = savitzky_golay(y, 51, 3) # window size 51, polynomial order 3
     # window size 51, polynomial order 3
     yhat = savgol_filter(y, windowSize, polyOrder)
     plt.plot(x, y, color='blue', label='original')
     plt.plot(x, yhat, color='red', label='zavgol')
-    plt.plot(x, smoothConvolve(y, 19), 'g-', lw=2, label='convolve')
+    plt.plot(x, smoothConvolve(y, windowSize), 'g-', lw=2, label='convolve')
     plt.legend()
     plt.title('Power over Distance')
     plt.xlabel('Distance (KM)')

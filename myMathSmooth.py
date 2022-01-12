@@ -23,6 +23,10 @@ def replacePower(_myData):
     # print(data)
     myNewList = data.to_dict('records')
     # myNewList = data.values.tolist()
+    for item in range(1, len(myNewList)):
+        if (item['WATTS'] < 0):
+            item['WATTS'] = 0
+
     return myNewList
 
 

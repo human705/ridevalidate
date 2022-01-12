@@ -1,6 +1,30 @@
 import math
 
 
+def radianstodegrees(r):
+    d = r * 180 / math.pi
+    return d
+
+
+def degreestoradians(d):
+    r = d * math.pi/180
+    return r
+
+
+def geolocation2xyz(_lat, _lon, _alt):
+    a = 6378137.0
+    e2 = 6.6943799901377997e-3
+    lat = degreestoradians(_lat)
+    lon = degreestoradians(_lon)
+    alt = _alt
+    n = a / math.sqrt(1 - e2 * math.sin(lat)*math.sin(lat))
+    dx = ((n + alt)*math.cos(lat)*math.cos(lon))  # ECEF x
+    dy = ((n + alt)*math.cos(lat)*math.sin(lon))  # ECEF y
+    dz = ((n*(1 - e2) + alt)*math.sin(lat))  # ECEF z
+    xyz = [dx, dy, dz]
+    return xyz
+
+
 def geoDistance(_lat1, _lon1, _lat2, _lon2):
     # _d1 = math.sin(trkpt_array[pt][0]*math.pi/180) * \``
     #     math.sin(trkpt_array[pt+1][0]*math.pi/180)
