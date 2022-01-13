@@ -10,8 +10,72 @@ def secToTime(seconds):
     return time.strftime("%H:%M:%S", time.gmtime(seconds))
 
 
+# Initialize sample point
+def initSamplePoint():
+    emptyPoint = {
+        # EPOCH format seconds
+        "SECS": 0,
+        "KM": 0,
+        "WATTS": 0,
+        "KPH": 0,
+        "ALT": -999,
+        "LAT": -1,
+        "LON": -1,
+        "HR": -1,
+        "CAD": -1,
+        "SLOPE": -99,
+        "TEMP": -99,
+    }
+    return emptyPoint
+
+# Convert TCX object to GC
+
+
+def fromTCXtoGC(_tcxData):
+    convertedSamples = []
+    samplePoint = initSamplePoint()
+    for point in _tcxData:
+        if 'time' in point:
+            samplePoint["SECS"] = int(point['time'].timestamp())
+        if 'distance' in point:
+            samplePoint["KM"] = float(
+                point['distance'] / 1000)  # GC expects KM
+        if 'Watts' in point:
+            samplePoint["WATTS"] = point['Watts']
+        else:
+            samplePoint.pop('WATTS')
+        if 'elevation' in point:
+            samplePoint["ALT"] = point['elevation']
+        if 'speed' in point:
+            samplePoint["KPH"] = point['speed']
+        if 'latitude' in point:
+            samplePoint["LAT"] = point['latitude']
+        if 'longitude' in point:
+            samplePoint["LON"] = point['longitude']
+        if 'heart_rate' in point:
+            samplePoint["HR"] = int(point['heart_rate'])
+        else:
+            samplePoint.pop('HR')
+        if 'cadence' in point:
+            samplePoint["CAD"] = int(point['cadence'])
+        else:
+            samplePoint.pop('CAD')
+        if 'Slope' in point:
+            samplePoint["SLOPE"] = point['Slope']
+        else:
+            samplePoint.pop('SLOPE')
+        if 'temperature' in point:
+            samplePoint["TEMP"] = point['temperature']
+        else:
+            samplePoint.pop('TEMP')
+        convertedSamples.append(samplePoint)
+        samplePoint = initSamplePoint()
+    return convertedSamples
+
+# Replace NaN with zeros and make HR and CAD integers
+
+
 def cleanupDisc(_dict):
-   # Replace NaN with zeros and make HR and CAD integers
     for item in _dict:
         if 'HR' in item:
             if (math.isnan(item['HR'])):
@@ -31,8 +95,9 @@ def cleanupDisc(_dict):
 
 def replaceSlopeFromData(_samples):
     logger.info("Replacing slope form distance and altitude.")
-    # newSamples = []
-    # myNewTrackPoint = {}
+    # We are skipping first and last, set them to 0 to avoid NaN
+    _samples[0]['SLOPE'] = 0.0
+    # _samples[len(_samples)-1]['SLOPE'] = 0.0
     oldSlope = 0
     for pt in range(1, len(_samples)-1):
         prev = _samples[pt-1]

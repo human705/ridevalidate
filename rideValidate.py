@@ -11,8 +11,10 @@ import pytz  # $ pip install pytz
 import copy
 import pathlib
 import pandas as pd
-import xml.etree.ElementTree as ET
-import re
+# import xml.etree.ElementTree as ET
+# import re
+# from bs4 import BeautifulSoup
+import lxml
 
 # My modules
 import importFIT
@@ -24,6 +26,7 @@ import myExports
 import calcPower
 import gcHelpers
 import myMathSmooth
+# import parse_tcx
 
 
 # Check to see if we have info to proceed
@@ -122,22 +125,12 @@ elif (fileExt == '.json'):
     # Closing file
     f.close()
 
-elif (fileExt == '.tcx'):
-    logging.info("Got a " + fileExt + " file.")
-    with open('1.tcx') as xml_file:
-        xml_str = xml_file.read()
-        xml_str = re.sub(' xmlns="[^"]+"', '',
-                         xml_str.decode('utf-8'), count=1)
-        root = ET.fromstring(xml_str)
-        activities = root.findall('.//Activity')
-        for activity in activities:
-            print('-- {} --'.format(activity.attrib['Sport']))
-            tracking_points = activity.findall('.//Trackpoint')
-            for tracking_point in list(tracking_points):
-                children = list(tracking_point)
-                print('Time: {}, HR Value: {}'.format(children[0].text,
-                                                      list(children[4])[0].text))
-
+# elif (fileExt == '.tcx'):
+#     logging.info("Got a " + fileExt + " file.")
+#     fname = filePath + '/' + fileName
+#     tcxDataPoints = parse_tcx.get_dataframes(fname)
+#     logging.info("Converting TCX object data to GC format.")
+#     importedSamples = myUtils.fromTCXtoGC(tcxDataPoints)
 
 else:
     logging.error('We can only process fit or json files. Aborting...')
