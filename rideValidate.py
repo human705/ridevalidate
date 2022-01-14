@@ -1,6 +1,6 @@
 # import fitdecode
 # import csv
-# import lxml
+import lxml
 import datetime
 from datetime import datetime
 from datetime import timedelta
@@ -119,7 +119,6 @@ elif (fileExt == '.json'):
     timezone = pytz.timezone("UTC")
     d_aware = timezone.localize(utc_now)
     myTimeZone = datetime.utcnow().astimezone().tzinfo
-    # tz = get_localzone()
     est_now = d_aware.astimezone(pytz.timezone("America/New_York"))
     # rideStartTime = rideStartTime - timedelta(hours=5)
     rideStartTime = est_now
@@ -131,17 +130,30 @@ elif (fileExt == '.tcx'):
     fname = filePath + '/' + fileName
     tcxDataPoints = parse_tcx.get_dataframes(fname)
     logging.info("Converting TCX object data to GC format.")
-    importedSamples = myUtils.fromTCXtoGC(tcxDataPoints)
+    myRetObj = myUtils.fromTCXtoGC(tcxDataPoints)
+    importedSamples = myRetObj['importedSamples']
+    rideStartTimeSecs = myRetObj['rideStartTime']
+    # Set ride start time and add tzinfo
+    dtNow = datetime.fromtimestamp(rideStartTimeSecs)
+    timezone = pytz.timezone("America/New_York")
+    tzAware = timezone.localize(dtNow)
+    rideStartTime = tzAware
+
+    # Write CSV file
+    # myExports.writeCSVFile(filePath, fileName, importedSamples)
 
 else:
     logging.error('We can only process fit or json files. Aborting...')
     sys.exit("We can only process fit or json files. Aborting...")
 
 if (calculateSlope):
+
     # Replace recorded slope from Alt and Dis
     newSamples = myUtils.replaceSlopeFromData(importedSamples)
+    myExports.writeCSVFile(filePath, fileName, importedSamples)
     if (smoothSlope):
         newSamples = myMathSmooth.replaceSlope(newSamples)
+
 
 if not newSamples:  # List is empty
     newSamples = importedSamples
@@ -151,18 +163,22 @@ if (calculatePower):
     newSamples = calcPower.calcPowerGribble(newSamples)
     # Add 1 hour to start time to create a new GC file for comparison
     # TODO rideStartTime = rideStartTime + timedelta(hours=1)
+
     # Create a GC json file
     myRide = gcHelpers.buildGCRideShell(
         rideStartTime, 'GribblePower', fileName, '')
-    myRide['RIDE']['SAMPLES'] = newSamples
-    myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime, '')
+    # myRide['RIDE']['SAMPLES'] = newSamples
+    # myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime, '')
     if (smoothPower):
-        newPowerSamples = myMathSmooth.replacePower(myRide['RIDE']['SAMPLES'])
+        newSamples = myMathSmooth.replacePower(myRide['RIDE']['SAMPLES'])
         myRide = gcHelpers.buildGCRideShell(
             rideStartTime, 'GribblePower-Smooth', fileName, '')
-        myRide['RIDE']['SAMPLES'] = newPowerSamples
-        myExports.writeGCJSONFile(
-            filePath, fileName, myRide, rideStartTime, '')
+
+    # Make CAD and HR integers
+    newSamples = myUtils.cleanupDict(newSamples)
+    # Export Ride
+    myRide['RIDE']['SAMPLES'] = newSamples
+    myExports.writeGCJSONFile(filePath, fileName, myRide, rideStartTime, '')
 
     # # Calculate power based on the GC method
     # newSamples = calcPower.calcPowerGC(newSamples)

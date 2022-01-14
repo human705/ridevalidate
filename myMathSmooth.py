@@ -35,6 +35,9 @@ def replaceSlope(_myData):
     myNewList = []
     # Read list of objects
     data = pd.DataFrame(_myData)
+    # Replace any NaN with 0.0
+    data.fillna(0, inplace=True)
+    # print(data)
     y = data['SLOPE']
     windowSize = 21  # Myst be odd number
     polyOrder = 3

@@ -12,6 +12,8 @@ Anaconda is bloated, just use the command-line to manage all of your environment
 
 [Miniconda - Conda documentation](https://docs.conda.io/en/latest/miniconda.html)
 
+# Use anaconda prompt as admin for all conda commands
+
 ```
 conda config --set channel_priority strict
 ```
@@ -61,8 +63,11 @@ conda install <package-name>
 # Add basic DS Packages:
 
 bash
-conda install pandas scikit-learn matplotlib notebook statsmodels openpyxl xlrd seaborn
-pip install fitdecode
+conda install pandas matplotlib
+
+# conda install pandas scikit-learn matplotlib notebook statsmodels openpyxl xlrd seaborn
+
+pip install fitdecode spicy
 
 ```
 
@@ -71,6 +76,14 @@ pip install -r requirements.txt
 
 conda deactivate
 ```
+
+# miniconda to install Python. DO NOT install another python ver (Need to test this)
+
+# New folder structure
+
+# setup for all users
+
+C:\ProgramData\Miniconda3\envs
 
 # If you are working with VS Code you may need to add the path to the environment manually
 

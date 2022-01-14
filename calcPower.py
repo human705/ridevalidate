@@ -118,6 +118,8 @@ def calcPowerGC(_rideSamples):
 def calcPowerGribble(_rideSamples):
     logger.info("Calculating power based on Gribble method.")
     newSamples = copy.deepcopy(_rideSamples)
+    newSamples[0]['WATTS'] = 0
+    newSamples[len(newSamples)-1]['WATTS'] = 0
     badPoints = 0
     for pt in range(1, len(newSamples)-1):
         prev = newSamples[pt-1]

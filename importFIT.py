@@ -158,7 +158,7 @@ def loadFitToJSON(_myfileName, _myPath):
                     # }
                     importedSamples.append(sampleData)
     # Replace NaN with zeros and make HR and CAD integers
-    importedSamples = myUtils.cleanupDisc(importedSamples)
+    importedSamples = myUtils.cleanupDict(importedSamples)
     # for item in importedSamples:
     #     if (math.isnan(item['HR'])):
     #         item['HR'] = 0

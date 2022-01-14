@@ -34,9 +34,15 @@ def initSamplePoint():
 def fromTCXtoGC(_tcxData):
     convertedSamples = []
     samplePoint = initSamplePoint()
+    firstTime = True
+    rideStartTime = 0
     for point in _tcxData:
         if 'time' in point:
-            samplePoint["SECS"] = int(point['time'].timestamp())
+            if firstTime:
+                rideStartTime = int(point['time'].timestamp())
+                firstTime = False
+            samplePoint["SECS"] = int(
+                point['time'].timestamp()) - rideStartTime
         if 'distance' in point:
             samplePoint["KM"] = float(
                 point['distance'] / 1000)  # GC expects KM
@@ -47,7 +53,7 @@ def fromTCXtoGC(_tcxData):
         if 'elevation' in point:
             samplePoint["ALT"] = point['elevation']
         if 'speed' in point:
-            samplePoint["KPH"] = point['speed']
+            samplePoint["KPH"] = float(point['speed'] * 3.6)
         if 'latitude' in point:
             samplePoint["LAT"] = point['latitude']
         if 'longitude' in point:
@@ -70,12 +76,17 @@ def fromTCXtoGC(_tcxData):
             samplePoint.pop('TEMP')
         convertedSamples.append(samplePoint)
         samplePoint = initSamplePoint()
-    return convertedSamples
+
+    retObj = {
+        "importedSamples": convertedSamples,
+        "rideStartTime": rideStartTime
+    }
+    return retObj
 
 # Replace NaN with zeros and make HR and CAD integers
 
 
-def cleanupDisc(_dict):
+def cleanupDict(_dict):
     for item in _dict:
         if 'HR' in item:
             if (math.isnan(item['HR'])):
@@ -156,3 +167,5 @@ def calcSlopeFromData(_samples):
 
 def calcSlopeFromGeoData():
     logger.info('Here')
+    # TODO - add code from Steve's sample
+    pass
