@@ -75,3 +75,11 @@ conda deactivate
 # If you are working with VS Code you may need to add the path to the environment manually
 
 add the path "C:\Users\%USERNAME%\miniconda3\envs\envname\python.exe"
+
+# Fix missing packeges
+
+# Replace python path with the correct env
+
+> C:/Users/peter/miniconda3/envs/RideFileValidator/python.exe -m pip show lxml
+> C:/Users/peter/miniconda3/envs/RideFileValidator/python.exe -m pip install lxml
+> C:/Users/peter/miniconda3/envs/RideFileValidator/python.exe -m pip uninstall lxml

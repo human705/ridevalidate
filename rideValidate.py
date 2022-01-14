@@ -1,5 +1,6 @@
 # import fitdecode
-import csv
+# import csv
+# import lxml
 import datetime
 from datetime import datetime
 from datetime import timedelta
@@ -14,7 +15,7 @@ import pandas as pd
 # import xml.etree.ElementTree as ET
 # import re
 # from bs4 import BeautifulSoup
-import lxml
+
 
 # My modules
 import importFIT
@@ -26,7 +27,7 @@ import myExports
 import calcPower
 import gcHelpers
 import myMathSmooth
-# import parse_tcx
+import parse_tcx
 
 
 # Check to see if we have info to proceed
@@ -125,12 +126,12 @@ elif (fileExt == '.json'):
     # Closing file
     f.close()
 
-# elif (fileExt == '.tcx'):
-#     logging.info("Got a " + fileExt + " file.")
-#     fname = filePath + '/' + fileName
-#     tcxDataPoints = parse_tcx.get_dataframes(fname)
-#     logging.info("Converting TCX object data to GC format.")
-#     importedSamples = myUtils.fromTCXtoGC(tcxDataPoints)
+elif (fileExt == '.tcx'):
+    logging.info("Got a " + fileExt + " file.")
+    fname = filePath + '/' + fileName
+    tcxDataPoints = parse_tcx.get_dataframes(fname)
+    logging.info("Converting TCX object data to GC format.")
+    importedSamples = myUtils.fromTCXtoGC(tcxDataPoints)
 
 else:
     logging.error('We can only process fit or json files. Aborting...')
