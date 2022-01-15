@@ -1,6 +1,6 @@
 # import fitdecode
 # import csv
-import lxml
+# import lxml
 import datetime
 from datetime import datetime
 from datetime import timedelta
@@ -72,7 +72,7 @@ showPowerPlots = False
 calculatePower = True
 smoothPower = False
 calculateSlope = True
-smoothSlope = True
+smoothSlope = False
 createRideFileBackup = False
 
 # Return the file extension
@@ -132,6 +132,7 @@ elif (fileExt == '.tcx'):
     logging.info("Converting TCX object data to GC format.")
     myRetObj = myUtils.fromTCXtoGC(tcxDataPoints)
     importedSamples = myRetObj['importedSamples']
+    importedSamples = myUtils.AddZerosToEmptyFields(importedSamples)
     rideStartTimeSecs = myRetObj['rideStartTime']
     # Set ride start time and add tzinfo
     dtNow = datetime.fromtimestamp(rideStartTimeSecs)

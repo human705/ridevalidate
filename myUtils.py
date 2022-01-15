@@ -1,16 +1,30 @@
 import time
 import copy
 import math
+import pandas as pd
 import myLogger
 
 logger = myLogger.logging.getLogger()
+
+# Some records are missing CAD and other info
+
+
+def AddZerosToEmptyFields(_myData):
+    myNewList = []
+    data = pd.DataFrame(_myData)
+    # Replace any NaN with 0
+    data.fillna(0, inplace=True)
+    # Convert to list of dict
+    myNewList = data.to_dict('records')
+    return myNewList
 
 
 def secToTime(seconds):
     return time.strftime("%H:%M:%S", time.gmtime(seconds))
 
-
 # Initialize sample point
+
+
 def initSamplePoint():
     emptyPoint = {
         # EPOCH format seconds
@@ -123,12 +137,6 @@ def replaceSlopeFromData(_samples):
         if (calcSlope > 30 or calcSlope < -30):
             calcSlope = oldSlope
         oldSlope = calcSlope
-        # myNewTrackPoint = copy.deepcopy(current)
-        # newDict = {"SLOPE1": calcSlope,
-        #            "deltaDist": deltaDistance, "deltaAlt": deltaAltitude}
-        # myNewTrackPoint.update(newDict)
-        # logger.debug(myNewTrackPoint)
-        # newSamples.append(myNewTrackPoint)
         current['SLOPE'] = calcSlope
 
     return _samples
@@ -149,7 +157,6 @@ def calcSlopeFromData(_samples):
         deltaAltitude = current['ALT'] - prev['ALT']
         if (deltaDistance > 0):
             calcSlope = (deltaAltitude / (deltaDistance * 10))
-
         else:
             calcSlope = oldSlope
         if (calcSlope > 30 or calcSlope < -30):
