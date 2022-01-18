@@ -28,6 +28,7 @@ import calcPower
 import gcHelpers
 import myMathSmooth
 import parse_tcx
+import geoElevation
 
 
 # Check to see if we have info to proceed
@@ -74,6 +75,7 @@ smoothPower = False
 calculateSlope = True
 smoothSlope = False
 createRideFileBackup = False
+fixElevation = True
 
 # Return the file extension
 fileExt = pathlib.Path(fileName).suffix
@@ -148,13 +150,28 @@ else:
     sys.exit("We can only process fit or json files. Aborting...")
 
 if (calculateSlope):
-
     # Replace recorded slope from Alt and Dis
     newSamples = myUtils.replaceSlopeFromData(importedSamples)
     myExports.writeCSVFile(filePath, fileName, importedSamples)
     if (smoothSlope):
         newSamples = myMathSmooth.replaceSlope(newSamples)
 
+if not newSamples:  # List is empty
+    newSamples = importedSamples
+
+if (fixElevation):
+    retObj = {
+        "retList": [],
+        "retCode": -1,
+        "retMsg": ""
+    }
+    retObj = geoElevation.processSamples(newSamples)
+    if ('retCode' in retObj) and (retObj['retCode'] == 0):
+        logger.info("New elevation list process completed.")
+        newSamples = retObj['retList']
+    else:
+        logger.error('Fix elevation returned Error: %d. Error message: %s' %
+                     (retObj['retCode'], retObj['retMsg']))
 
 if not newSamples:  # List is empty
     newSamples = importedSamples
