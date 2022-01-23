@@ -162,7 +162,8 @@ def getAltForGeoListinSegments(_samples, counter):
         retObj = getOpenApiAltitude(apiBody)
         if retObj['retCode'] == 0:
             coordList += retObj['retList']
-        partialList = []
+        else:
+            listProcessed = True
         # print(coordList)
         apiBody = {}
         locations = []
@@ -174,12 +175,6 @@ def getAltForGeoListinSegments(_samples, counter):
             "retList": coordList,
             "retCode": 0,
             "retMsg": "OK"
-        }
-    else:
-        retObj = {
-            "retList": [],
-            "retCode": -1,
-            "retMsg": ""
         }
     return retObj
 
@@ -277,7 +272,7 @@ def getOpenApiAltitude(_body):
             "retCode": 0,
             "retMsg": "Open Elevation API Response: %s  - %s" % (str(response.status_code), response.reason)
         }
-        logger.info("Response: %s  - %s" %
+        logger.info("Open Elevation API Response: %s  - %s" %
                     (str(response.status_code), response.reason))
     else:
         retObj = {
@@ -291,6 +286,7 @@ def getOpenApiAltitude(_body):
 
 
 def replaceElevationValues(_samples, _xyz):
+
     if (len(_samples) == len(_xyz)):
         cnt = 0
         while cnt <= len(_samples) - 1:
@@ -300,20 +296,21 @@ def replaceElevationValues(_samples, _xyz):
     else:
         logger.error(
             "Original and new elevation samples are not equal in size.")
+
     return _samples
 
 
 def processSamples(_samples):
     # postBoby = buildOpenElevAPIBody(_samples)
-    retObj = getAltForGeoListinSegments(_samples, 2000)
+    logger.info("Getting Altitude data fro. OpenAltitude API")
+    retObj = getAltForGeoListinSegments(_samples, 1000)
 
     if retObj['retCode'] == 0:
-        retObj = replaceElevationValues(_samples, retObj['retList'])
-
-    # retObj = {
-    #     "retList": [],
-    #     "retCode": -1,
-    #     "retMsg": ""
-    # }
+        newObj = replaceElevationValues(_samples, retObj['retList'])
+        retObj = {
+            "retList": newObj,
+            "retCode": 0,
+            "retMsg": "OK"
+        }
 
     return retObj

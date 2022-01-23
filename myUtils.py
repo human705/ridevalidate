@@ -6,10 +6,12 @@ import myLogger
 
 logger = myLogger.logging.getLogger()
 
-# Some records are missing CAD and other info
-
 
 def AddZerosToEmptyFields(_myData):
+    """
+    Some records are missing CAD and other info. We convert to dataframe
+    and replace NaN to 0
+    """
     myNewList = []
     data = pd.DataFrame(_myData)
     # Replace any NaN with 0

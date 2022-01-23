@@ -74,8 +74,10 @@ calculatePower = True
 smoothPower = False
 calculateSlope = True
 smoothSlope = False
-createRideFileBackup = False
-fixElevation = True
+createRideFileBackup = True
+fixElevation = False
+smothElevation = False
+showElevationPlots = False
 
 # Return the file extension
 fileExt = pathlib.Path(fileName).suffix
@@ -86,6 +88,7 @@ if (fileExt == ".fit"):
     # Process FIT file
     myRetObj = importFIT.loadFitToJSON(fileName, filePath)
     importedSamples = myRetObj['importedSamples']
+    importedSamples = myUtils.AddZerosToEmptyFields(importedSamples)
     rideStartTime = myRetObj['rideStartTime']
 
     if (createRideFileBackup):
@@ -112,6 +115,7 @@ elif (fileExt == '.json'):
     # returns JSON object as# a dictionary
     data = json.load(f)
     importedSamples = copy.deepcopy(data['RIDE']['SAMPLES'])
+    importedSamples = myUtils.AddZerosToEmptyFields(importedSamples)
     strDateTime = data['RIDE']['STARTTIME']
     # Convert string to datetime obj
     rideStartTime = datetime.strptime(
@@ -126,6 +130,8 @@ elif (fileExt == '.json'):
     rideStartTime = est_now
     # Closing file
     f.close()
+    # Write CSV file
+    myExports.writeCSVFile(filePath, fileName, importedSamples)
 
 elif (fileExt == '.tcx'):
     logging.info("Got a " + fileExt + " file.")
@@ -172,9 +178,15 @@ if (fixElevation):
     else:
         logger.error('Fix elevation returned Error: %d. Error message: %s' %
                      (retObj['retCode'], retObj['retMsg']))
+    if smothElevation:
+        newSamples = myMathSmooth.smoothAltitude(newSamples)
 
 if not newSamples:  # List is empty
     newSamples = importedSamples
+
+if (showElevationPlots):
+    # Show plot
+    plotTests.mySmoothingElevatioPlot(newSamples)
 
 if (calculatePower):
     # Calculate power based on the Gribble method

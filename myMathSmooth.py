@@ -7,6 +7,31 @@ import matplotlib.pyplot as plt
 from scipy.signal import savgol_filter
 
 
+def smoothAltitude(_samples):
+    myNewList = []
+    # Read list of objects
+    data = pd.DataFrame(_samples)
+    # Replace any NaN with 0.0
+    data.fillna(0, inplace=True)
+    y = data['ALT']
+    windowSize = 5  # Myst be odd number
+    polyOrder = 2
+    # yhat = savitzky_golay(y, 51, 3) # window size 51, polynomial order 3
+    # window size 51, polynomial order 3
+    yhat = savgol_filter(y, windowSize, polyOrder)
+    data['NewAlt'] = yhat
+    data.drop('ALT', axis=1, inplace=True)
+    data.rename(columns={'NewAlt': 'ALT'}, inplace=True)
+    # print(data)
+    myNewList = data.to_dict('records')
+    # myNewList = data.values.tolist()
+    # for item in range(1, len(myNewList)):
+    #     if (item['WATTS'] < 0):
+    #         item['WATTS'] = 0
+
+    return myNewList
+
+
 def replacePower(_myData):
     myNewList = []
     # Read list of objects

@@ -77,6 +77,9 @@ pip install -r requirements.txt
 conda deactivate
 ```
 
+conda env remove -n testpyqt1
+
+
 # miniconda to install Python. DO NOT install another python ver (Need to test this)
 
 # New folder structure

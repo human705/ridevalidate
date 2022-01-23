@@ -34,6 +34,25 @@ def smoothConvolve(y, box_pts):
     return y_smooth
 
 
+def mySmoothingElevatioPlot(_myData):
+    """ Show curves for Elevation """
+    data = pd.DataFrame(_myData)
+    x = data['KM']
+    y = data['ALT']
+    windowSize = 21  # Myst be odd number
+    polyOrder = 3
+    yhat = savgol_filter(y, windowSize, polyOrder)
+    plt.plot(x, y, color='blue', label='original')
+    plt.plot(x, yhat, color='red', label='zavgol')
+    plt.plot(x, smoothConvolve(y, windowSize), 'g-', lw=2, label='convolve')
+    plt.legend()
+    plt.title('Altitude over distance')
+    plt.xlabel('Distance (KM)')
+    plt.ylabel('Altitude (m)')
+    plt.tight_layout()
+    plt.show()
+
+
 # from scipy.signal import savgol_filter
 # yhat = savgol_filter(y, 51, 3) # window size 51, polynomial order 3
 # savitzky_golay
