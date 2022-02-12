@@ -94,7 +94,7 @@ def fitToList(_frame):
         samplePoint["LAT"] = testDict['position_lat']
     if 'position_long' in testDict:
         samplePoint["LON"] = testDict['position_long']
-    if 'heart_rate' in testDict:
+    if 'heart_rate' in testDict and testDict['heart_rate']:
         samplePoint["HR"] = int(testDict['heart_rate'])
     else:
         samplePoint.pop('HR')
@@ -125,49 +125,39 @@ def loadFitToJSON(_myfileName, _myPath):
         for frame in fit:
             if frame.frame_type == fitdecode.FIT_FRAME_DATA:
                 if (frame.name == "record"):
-                    sampleData = fitToList(frame)
-                    if (currentSec == -1):
-                        currentSec = sampleData['SECS']
-                        rideStartTime = datetime.fromtimestamp(
-                            currentSec)
-                        d = rideStartTime.strftime("%m/%d/%Y, %H:%M:%S")
-                        logger.debug("Debug: Ride start date " + d +
-                                     " timestamp: " + str(currentSec))
-                        # Adjust for staring point for distance to zero.
-                        startingOffset = sampleData['KM']
-                    sampleData['SECS'] = int(sampleData['SECS'] - currentSec)
-                    sampleData['KM'] = (
-                        sampleData['KM'] - startingOffset) / 1000  # Meters
-                    sampleData['KPH'] = sampleData['KPH'] * 3.6
-                    sampleData['LAT'] = sampleData['LAT'] * (180 / 2 ** 31)
-                    sampleData['LON'] = sampleData['LON'] * (180 / 2 ** 31)
-                    # sampleData = {
-                    #     # EPOCH format seconds
-                    #     "SECS": int(frame.fields[0].value.timestamp() - currentSec),
-                    #     "KM": (frame.fields[3].value - startingOffset) / 1000,
-                    #     # Estimated by Dozen Cycle
-                    #     "WATTS": frame.fields[14].value,
-                    #     "KPH": (frame.fields[7].value * 3.6),
-                    #     "ALT": frame.fields[5].value,
-                    #     "LAT": frame.fields[1].value * (180 / 2 ** 31),
-                    #     "LON": frame.fields[2].value * (180 / 2 ** 31),
-                    #     "HR": frame.fields[10].value,
-                    #     "CAD": frame.fields[11].value,
-                    #     "SLOPE": frame.fields[15].value,
-                    #     "TEMP": frame.fields[12].value,
-                    # }
-                    importedSamples.append(sampleData)
-    # Replace NaN with zeros and make HR and CAD integers
-    importedSamples = myUtils.cleanupDict(importedSamples)
-    # for item in importedSamples:
-    #     if (math.isnan(item['HR'])):
-    #         item['HR'] = 0
-    #     else:
-    #         item['HR'] = int(item['HR'])
-    #     if (math.isnan(item['CAD'])):
-    #         item['CAD'] = 0
-    #     else:
-    #         item['CAD'] = int(item['CAD'])
+                    try:
+                        # logger.info('Trying...')
+                        sampleData = fitToList(frame)
+                        if (currentSec == -1):
+                            currentSec = sampleData['SECS']
+                            rideStartTime = datetime.fromtimestamp(
+                                currentSec)
+                            d = rideStartTime.strftime("%m/%d/%Y, %H:%M:%S")
+                            logger.debug("Debug: Ride start date " + d +
+                                         " timestamp: " + str(currentSec))
+                            # Adjust for staring point for distance to zero.
+                            startingOffset = sampleData['KM']
+                        if (sampleData['LAT'] == -1 or sampleData['LON'] == -1):
+                            logger.warning(
+                                "LAT or LON error...Skipping record.")
+                        else:
+                            t = int(sampleData['SECS'] - currentSec)
+                            logger.debug('Processing SEC: ' + str(t))
+                            sampleData['SECS'] = int(
+                                sampleData['SECS'] - currentSec)
+                            sampleData['KM'] = (
+                                sampleData['KM'] - startingOffset) / 1000  # Meters
+                            sampleData['KPH'] = sampleData['KPH'] * 3.6
+                            sampleData['LAT'] = sampleData['LAT'] * \
+                                (180 / 2 ** 31)
+                            sampleData['LON'] = sampleData['LON'] * \
+                                (180 / 2 ** 31)
+                            importedSamples.append(sampleData)
+                    except Exception as e:
+                        logger.info(sampleData)
+                        logger.info('ERROR ' + str(e) +
+                                    ' occured at SECS: ' + str(t))
+
     retObj = {
         "importedSamples": importedSamples,
         "rideStartTime": rideStartTime

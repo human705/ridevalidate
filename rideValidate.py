@@ -70,7 +70,7 @@ strDateTime = ""
 # TODO --- Make parameters for the following
 showSlopePlots = False
 showPowerPlots = False
-calculatePower = True
+calculatePower = False
 smoothPower = False
 calculateSlope = True
 smoothSlope = False
@@ -89,6 +89,8 @@ if (fileExt == ".fit"):
     myRetObj = importFIT.loadFitToJSON(fileName, filePath)
     importedSamples = myRetObj['importedSamples']
     importedSamples = myUtils.AddZerosToEmptyFields(importedSamples)
+    # Replace NaN with zeros and make HR and CAD integers
+    importedSamples = myUtils.cleanupDict(importedSamples)
     rideStartTime = myRetObj['rideStartTime']
 
     if (createRideFileBackup):

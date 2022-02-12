@@ -34,6 +34,14 @@ conda install <package-name>
 conda update conda
 ```
 
+# Add conda-forge As a Channel:
+
+```bash
+conda config --add channels conda-forge
+conda config --set channel_priority strict
+conda install <package-name>
+
+
 Setting Up Conda Environment and change minimal-ds to anything you want
 
 # Create a `minimal_ds` Environment:
@@ -41,23 +49,18 @@ Setting Up Conda Environment and change minimal-ds to anything you want
 ```bash
 conda create --name minimal_ds
 ```
-
 # Activate `minimal_ds` Environment:
 
 ```bash
 conda activate minimal_ds
 ```
-
 ````List environments
 conda env list
 
+conda deactivate
+```
+conda env remove -n testpyqt1
 
-# Add conda-forge As a Channel:
-
-```bash
-conda config --add channels conda-forge
-conda config --set channel_priority strict
-conda install <package-name>
 ````
 
 # Add basic DS Packages:
